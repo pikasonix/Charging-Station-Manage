@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from "sonner";
@@ -24,7 +26,7 @@ interface Station {
 }
 
 // --- CONFIG ---
-const API_BASE_URL = "http://localhost:8080/api/stations";
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/stations`;
 
 export default function StationManagement() {
   // --- STATE ---
