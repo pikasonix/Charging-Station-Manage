@@ -2,7 +2,9 @@ name: Deploy to Render
 
 on:
   push:
-    branches: [ "release" ] # Sẽ chạy khi push vào branch release
+    branches: [ "release" ] # Chạy khi push vào branch release
+    paths:
+      - 'backend/**'      # CHỈ chạy khi có thay đổi trong thư mục backend
 
 jobs:
   build-and-push:
