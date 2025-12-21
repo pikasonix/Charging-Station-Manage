@@ -22,7 +22,10 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -33,6 +36,20 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:8080}")
+    private String corsAllowedOrigins;
+
+    private List<String> parseAllowedOrigins() {
+        if (corsAllowedOrigins == null || corsAllowedOrigins.isBlank()) {
+            return List.of();
+        }
+        // Support comma and/or whitespace separated env values
+        return Arrays.stream(corsAllowedOrigins.split("[,\\s]+"))
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.toList());
+    }
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -56,18 +73,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Cho phép các domain Frontend
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",
-                "http://localhost:3001",
-                "http://localhost:8080",
-                "http://localhost:5173" // Thường Vite/React dùng port này, thêm cho chắc
-        ));
+        // Allowed origins are configured via env (CORS_ALLOWED_ORIGINS -> app.cors.allowed-origins)
+        configuration.setAllowedOrigins(parseAllowedOrigins());
 
         configuration.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
 
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 

@@ -1,5 +1,6 @@
 package com.example.charging_station_management.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -7,9 +8,24 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 public class CorsConfig {
+
+        @Value("${app.cors.allowed-origins:http://localhost:3000,http://localhost:8080}")
+        private String corsAllowedOrigins;
+
+        private List<String> parseAllowedOrigins() {
+                if (corsAllowedOrigins == null || corsAllowedOrigins.isBlank()) {
+                        return List.of();
+                }
+                return Arrays.stream(corsAllowedOrigins.split("[,\\s]+"))
+                                .map(String::trim)
+                                .filter(s -> !s.isBlank())
+                                .collect(Collectors.toList());
+        }
 
     @Bean
     public CorsFilter corsFilter() {
@@ -18,11 +34,7 @@ public class CorsConfig {
 
         config.setAllowCredentials(true);
 
-        config.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",
-                "http://localhost:3001",
-                "https://your-production-domain.com"
-        ));
+        config.setAllowedOrigins(parseAllowedOrigins());
 
         config.addAllowedHeader("*");
 
