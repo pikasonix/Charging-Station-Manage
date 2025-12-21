@@ -15,7 +15,7 @@ public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
 
-    @Value("${spring.mail.username}")
+    @Value("${spring.mail.username:}")
     private String fromEmail;
 
     @Value("${app.frontend.url:http://localhost:3000}")
@@ -23,6 +23,10 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendPasswordResetEmail(String toEmail, String resetToken) {
+        if (fromEmail == null || fromEmail.isBlank()) {
+            log.warn("Email is not configured (spring.mail.username is blank). Skipping send.");
+            throw new RuntimeException("Chức năng gửi email chưa được cấu hình trên server.");
+        }
         try {
             String resetUrl = frontendUrl + "/reset-password?token=" + resetToken;
 
