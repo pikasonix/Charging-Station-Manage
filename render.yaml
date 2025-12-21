@@ -1,17 +1,11 @@
 services:
   # PostgreSQL Database
-  - type: pserv
+  - type: postgres
     name: charging-postgres
-    env: docker
     plan: free
     region: singapore
-    envVars:
-      - key: POSTGRES_USER
-        value: postgres
-      - key: POSTGRES_PASSWORD
-        generateValue: true
-      - key: POSTGRES_DB
-        value: charging_station_db
+    databaseName: charging_station_db
+    user: postgres
 
   # Spring Boot Backend
   - type: web
