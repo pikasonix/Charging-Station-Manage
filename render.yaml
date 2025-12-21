@@ -1,12 +1,4 @@
 services:
-  # PostgreSQL Database
-  - type: postgres
-    name: charging-postgres
-    plan: free
-    region: singapore
-    databaseName: charging_station_db
-    user: postgres
-
   # Spring Boot Backend
   - type: web
     name: charging-backend
@@ -17,9 +9,9 @@ services:
     dockerContext: ./backend
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: charging-postgres
-          property: connectionString
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
       - key: MAIL_USERNAME
         sync: false
       - key: MAIL_PASSWORD
