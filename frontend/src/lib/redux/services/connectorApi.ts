@@ -58,7 +58,7 @@ export interface ConnectorPage {
 export const connectorApi = createApi({
     reducerPath: "connectorApi",
     baseQuery: fetchBaseQuery({
-        baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
+        baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
         prepareHeaders: (headers) => {
             const token = localStorage.getItem("authToken");
             if (token) {

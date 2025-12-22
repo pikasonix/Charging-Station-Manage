@@ -26,7 +26,8 @@ interface Station {
 }
 
 // --- CONFIG ---
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/stations`;
+const API_HOST = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const API_BASE_URL = `${API_HOST}/api/stations`;
 
 export default function StationManagement() {
   // --- STATE ---

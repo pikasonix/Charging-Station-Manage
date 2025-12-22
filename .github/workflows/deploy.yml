@@ -38,9 +38,7 @@ jobs:
           context: ./backend
           file: ./backend/Dockerfile.render
           push: true
-          # Sửa lỗi: Viết liền mạch trên một dòng hoặc dùng dấu | nếu muốn xuống dòng
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/charging-backend:latest
 
       - name: Trigger Render Deploy
-        # Thêm nháy kép bao quanh URL để tránh lỗi ký tự đặc biệt trong token
         run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"

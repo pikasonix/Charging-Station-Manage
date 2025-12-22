@@ -1,7 +1,7 @@
 // src/lib/services/StationService.ts
 import type { Station } from "./StationPinTool";
 
-const API_HOST = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_HOST = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 const API_BASE = `${API_HOST}/api/stations`;
 const RESCUE_API_BASE = `${API_HOST}/api/admin/rescue-stations`;
 

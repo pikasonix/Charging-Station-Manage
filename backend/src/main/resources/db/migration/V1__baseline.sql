@@ -1,0 +1,7 @@
+-- Flyway baseline migration.
+--
+-- Purpose:
+-- - Ensures Flyway is active and creates flyway_schema_history on startup.
+-- - Safe no-op for existing databases.
+--
+-- Add real schema/data migrations as V2__, V3__, ... files in this folder.

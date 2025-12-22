@@ -102,7 +102,7 @@ interface PageResponse<T> {
 export const stationApi = createApi({
   reducerPath: "stationApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
     prepareHeaders: (headers) => {
       if (typeof window !== "undefined") {
         const token = localStorage.getItem("authToken");

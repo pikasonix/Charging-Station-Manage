@@ -144,7 +144,7 @@ function LoginContent() {
             "❌ Không thể kết nối đến server!\n\n" +
               "✅ Kiểm tra:\n" +
               "1. Backend đang chạy? (port 8080)\n" +
-              "2. File .env.local có NEXT_PUBLIC_API_BASE_URL=http://localhost:8080?\n" +
+              "2. File .env.local có NEXT_PUBLIC_API_URL=http://localhost:8080?\n" +
               "3. CORS đã cấu hình?"
           );
         } else if (error.data?.message) {

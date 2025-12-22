@@ -141,7 +141,7 @@ function isErrorWithData(
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({ 
-    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080",
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
     prepareHeaders: (headers, { getState }) => {
       const token = (getState() as RootState).auth.token;
       if (token) {
@@ -386,7 +386,7 @@ export const authApi = createApi({
 // token from localStorage and provides a simple 401 handling path.
 // ------------------------------------------------------------------
 const _baseQuery = fetchBaseQuery({
-  baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
   prepareHeaders: (headers) => {
     try {
       const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null;

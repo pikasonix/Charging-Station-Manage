@@ -167,7 +167,7 @@ interface BaseResponse<T> {
 export const profileApi = createApi({
   reducerPath: "profileApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
     prepareHeaders: (headers) => {
       const token = localStorage.getItem("authToken");
       if (token) {
