@@ -17,4 +17,6 @@ public class ReviewResponse {
     private Integer stars;
     private String comment;
     private LocalDateTime createdAt;
+    private String targetName; 
+    private String targetAddress;
 }
