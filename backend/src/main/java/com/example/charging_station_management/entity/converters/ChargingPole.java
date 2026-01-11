@@ -1,6 +1,6 @@
 package com.example.charging_station_management.entity.converters;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,9 +25,9 @@ public class ChargingPole {
     private Integer id;
 
     // --- Quan hệ ManyToOne với Station ---
-    @ManyToOne(fetch = FetchType.LAZY) 
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "station_id", nullable = false)
-    @JsonIgnore 
+    @JsonIgnoreProperties("chargingPoles")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude // Ngăn chặn lỗi StackOverflow do Lombok
     private Station station;

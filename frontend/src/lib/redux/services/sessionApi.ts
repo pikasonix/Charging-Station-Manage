@@ -16,6 +16,16 @@ export interface Session {
         model: string;
         licensePlate: string;
     };
+    chargingConnector?: {
+        id: number;
+        pole?: {
+            id: number;
+            station?: {
+                id: number;
+                name: string;
+            };
+        };
+    };
 }
 
 export const sessionApi = createApi({

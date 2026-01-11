@@ -5,6 +5,7 @@ import { useGetCurrentSessionQuery, useStopSessionMutation, useGetSessionHistory
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import ReviewDialog from "@/components/profile/MyReviewsSection/ReviewDialog";
 
 export default function ChargingMonitor() {
     const { data: session, refetch, isLoading, isError } = useGetCurrentSessionQuery(undefined, {
@@ -21,6 +22,19 @@ export default function ChargingMonitor() {
 
     // Debug for current session
     console.log("ChargingMonitor Current Session Debug:", { session, isLoading, isError });
+    
+    // Debug session structure when charging
+    if (session && session.status === 'CHARGING') {
+        console.log("[ChargingMonitor] Active charging session detected:");
+        console.log("  - Session ID:", session.id);
+        console.log("  - Has chargingConnector:", !!session.chargingConnector);
+        console.log("  - Has pole:", !!session.chargingConnector?.pole);
+        console.log("  - Has station:", !!session.chargingConnector?.pole?.station);
+        if (session.chargingConnector?.pole?.station) {
+            console.log("  - Station ID:", session.chargingConnector.pole.station.id);
+            console.log("  - Station Name:", session.chargingConnector.pole.station.name);
+        }
+    }
 
     const [stopSession, { isLoading: isStopping }] = useStopSessionMutation();
     const [elapsedTime, setElapsedTime] = useState(0);
@@ -51,20 +65,53 @@ export default function ChargingMonitor() {
         return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
+    const [showReviewDialog, setShowReviewDialog] = useState(false);
+    const [completedSession, setCompletedSession] = useState<any | null>(null);
+
+    // Debug review dialog state
+    useEffect(() => {
+        console.log("[ChargingMonitor] Review Dialog State:", {
+            showReviewDialog,
+            hasCompletedSession: !!completedSession,
+            completedSessionId: completedSession?.id
+        });
+    }, [showReviewDialog, completedSession]);
+
     const handleStop = async () => {
+        console.log("[ChargingMonitor] handleStop called. Session:", session);
         if (!session) return;
+        
+        const idToStop = session.id;
+        console.log("[ChargingMonitor] Stopping session ID:", idToStop);
+
+        if (!idToStop) {
+             toast.error("Lỗi: Không tìm thấy ID phiên sạc.");
+             return;
+        }
+
         try {
-            await stopSession(session.id).unwrap();
+            const result = await stopSession(idToStop).unwrap();
+            console.log("[ChargingMonitor] Stop result:", result);
+            setCompletedSession(result);
+            setShowReviewDialog(true);
             toast.success("Đã kết thúc phiên sạc!");
             refetch();
-        } catch (error) {
-            toast.error("Không thể dừng sạc. Vui lòng thử lại.");
+        } catch (error: any) {
+            console.error("[ChargingMonitor] Stop session error:", error);
+            const msg = error?.data?.message || error?.message || "Không thể dừng sạc. Vui lòng thử lại.";
+            toast.error(`Lỗi: ${msg}`);
         }
     };
 
     if (isLoading) return null; // Or a small spinner if preferred
     if (isError) return null; // Or show error toast
-    if (!isCharging || !session) return null;
+    
+    // Logic to keep component mounted if we need to show review dialog
+    const shouldRender = (isCharging && session) || (showReviewDialog && completedSession);
+    if (!shouldRender) return null;
+
+    const displaySession = session || completedSession;
+    if (!displaySession) return null;
 
     return (
         <div className="w-full bg-white rounded-lg shadow-sm border border-rose-200 p-4 animate-in slide-in-from-bottom-2 fade-in duration-300">
@@ -78,15 +125,15 @@ export default function ChargingMonitor() {
                     </div>
                     <div>
                         <h3 className="font-bold text-gray-900">Đang sạc...</h3>
-                        {session.electricVehicle && (
+                        {(displaySession.vehicleBrand || displaySession.licensePlate) && (
                             <p className="text-xs text-rose-600 font-medium truncate max-w-[150px]">
-                                {session.electricVehicle.brand} {session.electricVehicle.model} - {session.electricVehicle.licensePlate}
+                                {displaySession.vehicleBrand} {displaySession.vehicleModel} - {displaySession.licensePlate}
                             </p>
                         )}
                     </div>
                 </div>
                 <div className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                    #ID: {session.id}
+                    #ID: {displaySession.id}
                 </div>
             </div>
 
@@ -104,7 +151,7 @@ export default function ChargingMonitor() {
                         <Battery size={12} /> Điện năng
                     </div>
                     <div className="font-mono font-bold text-lg text-rose-600">
-                        {session.energyKwh} kWh
+                        {displaySession.energyKwh} kWh
                     </div>
                 </div>
             </div>
@@ -112,17 +159,30 @@ export default function ChargingMonitor() {
             <div className="space-y-2">
                 <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-500">Chi phí tạm tính:</span>
-                    <span className="font-bold text-gray-900">{session.cost?.toLocaleString()} VNĐ</span>
+                    <span className="font-bold text-gray-900">{displaySession.cost?.toLocaleString()} VNĐ</span>
                 </div>
-                <Button 
-                    variant="destructive" 
-                    className="w-full bg-rose-600 hover:bg-rose-700" 
-                    onClick={handleStop}
-                    disabled={isStopping}
-                >
-                    {isStopping ? "Đang dừng..." : "Dừng sạc"}
-                </Button>
+                {!showReviewDialog && (
+                    <Button 
+                        variant="destructive" 
+                        className="w-full bg-rose-600 hover:bg-rose-700" 
+                        onClick={handleStop}
+                        disabled={isStopping}
+                    >
+                        {isStopping ? "Đang dừng..." : "Dừng sạc"}
+                    </Button>
+                )}
             </div>
+
+            <ReviewDialog 
+                isOpen={showReviewDialog}
+                onClose={() => {
+                    setShowReviewDialog(false);
+                    setCompletedSession(null); 
+                }}
+                sessionId={displaySession.id}
+                stationId={displaySession.chargingConnector?.pole?.station?.id}
+                stationName={displaySession.chargingConnector?.pole?.station?.name}
+            />
         </div>
     );
 }

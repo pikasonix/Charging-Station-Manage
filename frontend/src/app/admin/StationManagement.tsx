@@ -145,7 +145,7 @@ export default function StationManagement() {
               <SelectItem value="all">Tất cả trạng thái</SelectItem>
               <SelectItem value="ACTIVE">Đang hoạt động</SelectItem>
               <SelectItem value="INACTIVE">Vô hiệu hóa</SelectItem>
-              <SelectItem value="MAINTENANCE">Bảo trì</SelectItem>
+              {/* <SelectItem value="MAINTENANCE">Bảo trì</SelectItem> */}
             </SelectContent>
           </Select>
         </div>

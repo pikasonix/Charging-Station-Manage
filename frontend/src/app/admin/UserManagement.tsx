@@ -244,7 +244,7 @@ function UserDetailModal({ user, onClose }: { user: any, onClose: () => void }) 
             </div>
             <div className="p-3 bg-gray-50 rounded-lg border">
               <div className="flex items-center gap-2 text-gray-500 text-xs uppercase mb-1 font-semibold"><Calendar className="w-3 h-3" /> Ngày tạo</div>
-              <div className="text-gray-900 font-medium">20/05/2024 (Mock)</div>
+              <div className="text-gray-900 font-medium">20/05/2024</div>
             </div>
           </div>
 

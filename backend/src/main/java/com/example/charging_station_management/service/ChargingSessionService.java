@@ -13,13 +13,13 @@ public interface ChargingSessionService {
 
     ChargingSessionDetailResponse getChargingSessionById(Integer sessionId);
 
-    ChargingSession startSession(Integer userId, Integer connectorId, Integer vehicleId);
+    ChargingSessionDetailResponse startSession(Integer userId, Integer connectorId, Integer vehicleId);
 
-    ChargingSession stopSession(Integer userId, Integer sessionId);
+    ChargingSessionDetailResponse stopSession(Integer userId, Integer sessionId);
 
-    ChargingSession getCurrentSession(Integer userId);
+    ChargingSessionDetailResponse getCurrentSession(Integer userId);
 
     Page<ChargingSession> getSessionHistory(Integer userId, Pageable pageable);
 
-    java.util.List<ChargingSession> getActiveSessions(Integer userId);
+    java.util.List<ChargingSessionDetailResponse> getActiveSessions(Integer userId);
 }

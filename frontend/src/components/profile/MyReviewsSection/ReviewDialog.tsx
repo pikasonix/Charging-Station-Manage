@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,24 @@ export default function ReviewDialog({
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [createReview] = useCreateReviewMutation();
+
+    // Debug props
+    console.log("[ReviewDialog] Component rendered with props:", {
+        isOpen,
+        sessionId,
+        stationId,
+        stationName
+    });
+
+    // Track when dialog opens/closes
+    useEffect(() => {
+        if (isOpen) {
+            console.log("[ReviewDialog] Dialog OPENED");
+            console.log("[ReviewDialog] Current props:", { sessionId, stationId, stationName });
+        } else {
+            console.log("[ReviewDialog] Dialog CLOSED");
+        }
+    }, [isOpen, sessionId, stationId, stationName]);
 
     const handleSubmit = async () => {
         if (!comment.trim()) {
