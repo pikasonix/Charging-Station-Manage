@@ -31,14 +31,23 @@ export interface DbProject {
   updated_at?: string;
 }
 
+
 export interface ReviewResponse {
-    id: number;
-    customerName: string;
-    stars: number;
-    comment: string;
-    createdAt: string;
-    targetName?: string;
-    targetAddress?: string;
+  id: number;
+  customerName: string;
+  stars: number;
+  comment: string;
+  createdAt: string;
+  targetName?: string;
+  targetAddress?: string;
+}
+
+export interface ReviewListResponse {
+  content: ReviewResponse[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
 }
 
 
@@ -147,26 +156,26 @@ export interface ChartData {
 
 // Add this interface
 export interface ChargingSessionDetailResponse {
-    sessionId: number;
-    startTime: string;
-    endTime?: string;
-    energyKwh: number;
-    cost: number;
-    status: "PENDING" | "CHARGING" | "COMPLETED" | "CANCELLED" | "FAILED";
-    customerId: number;
-    customerName: string;
-    customerEmail?: string;
-    customerPhone?: string;
-    vehicleId: number;
-    licensePlate: string;
-    vehicleBrand?: string;
-    vehicleModel?: string;
-    stationId: number;
-    stationName: string;
-    stationAddress?: string;
-    connectorId: number;
-    connectorType?: string;
-    maxPower?: number;
+  sessionId: number;
+  startTime: string;
+  endTime?: string;
+  energyKwh: number;
+  cost: number;
+  status: "PENDING" | "CHARGING" | "COMPLETED" | "CANCELLED" | "FAILED";
+  customerId: number;
+  customerName: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  vehicleId: number;
+  licensePlate: string;
+  vehicleBrand?: string;
+  vehicleModel?: string;
+  stationId: number;
+  stationName: string;
+  stationAddress?: string;
+  connectorId: number;
+  connectorType?: string;
+  maxPower?: number;
 }
 
 interface BaseResponse<T> {
@@ -356,17 +365,17 @@ export const profileApi = createApi({
     getVendorActiveSessions: builder.query<ChargingSessionDetailResponse[], void>({ // Using ChargingSessionDetailResponse as return type
       query: () => `/api/vendor/sessions/active?size=100`, // Fetch all active (limit 100)
       transformResponse: (response: BaseResponse<ChargingHistoryResponse>) => {
-         // The Controller returns Page response in "data", so we map it.
-         // Wait, the controller returns BaseApiResponse<Map<String, Object>> (Page response)
-         // Actually the controller returns BaseApiResponse(createPageResponse(sessions))
-         // createPageResponse returns Map.
-         // Let's refine the type.
-         // For now, let's assume the response structure matches "ChargingHistoryResponse" roughly 
-         // but "content" is the list.
-         // However, my controller snippet for active sessions returns:
-         // BaseApiResponse.success(createPageResponse(sessions))
-         // content field has the list.
-         return (response.data as any).content;
+        // The Controller returns Page response in "data", so we map it.
+        // Wait, the controller returns BaseApiResponse<Map<String, Object>> (Page response)
+        // Actually the controller returns BaseApiResponse(createPageResponse(sessions))
+        // createPageResponse returns Map.
+        // Let's refine the type.
+        // For now, let's assume the response structure matches "ChargingHistoryResponse" roughly 
+        // but "content" is the list.
+        // However, my controller snippet for active sessions returns:
+        // BaseApiResponse.success(createPageResponse(sessions))
+        // content field has the list.
+        return (response.data as any).content;
       },
       providesTags: ["Profile"], // Invalidate when profile updates or can add specific tag
     }),
@@ -386,9 +395,23 @@ export const profileApi = createApi({
     }),
 
     getVendorSessionDetail: builder.query<ChargingSessionDetailResponse, number>({
-        query: (sessionId) => `/api/vendor/sessions/${sessionId}`,
-        transformResponse: (response: BaseResponse<ChargingSessionDetailResponse>) => response.data,
-        providesTags: (result, error, id) => [{ type: "Profile", id: `Session-${id}` }],
+      query: (sessionId) => `/api/vendor/sessions/${sessionId}`,
+      transformResponse: (response: BaseResponse<ChargingSessionDetailResponse>) => response.data,
+      providesTags: (result, error, id) => [{ type: "Profile", id: `Session-${id}` }],
+    }),
+
+    getMyReviews: builder.query<ReviewListResponse, { page?: number; size?: number }>({
+      query: ({ page = 0, size = 10 }) => `/api/customer/reviews?page=${page}&size=${size}`,
+      providesTags: ["Profile"],
+    }),
+        // --- Reviews ---
+    createReview: builder.mutation<any, { targetType: string; targetId?: number; sessionId?: number; stars: number; comment: string }>({
+        query: (body) => ({
+            url: `/api/ratings`,
+            method: "POST",
+            body,
+        }),
+        invalidatesTags: ["Profile"],
     }),
   }),
 });
@@ -414,4 +437,6 @@ export const {
   useGetVendorActiveSessionsQuery,
   useGetVendorSessionHistoryQuery,
   useGetVendorSessionDetailQuery,
+  useGetMyReviewsQuery,
+  useCreateReviewMutation,
 } = profileApi;
