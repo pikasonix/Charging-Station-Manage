@@ -31,6 +31,17 @@ export interface DbProject {
   updated_at?: string;
 }
 
+export interface ReviewResponse {
+    id: number;
+    customerName: string;
+    stars: number;
+    comment: string;
+    createdAt: string;
+    targetName?: string;
+    targetAddress?: string;
+}
+
+
 export interface ProjectWithFounder extends DbProject {
   profiles?: {
     name: string | null;

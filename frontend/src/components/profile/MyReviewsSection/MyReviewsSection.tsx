@@ -2,6 +2,8 @@
 
 import React from "react";
 import { Star } from "lucide-react";
+import { useGetMyReviewsQuery, ReviewResponse } from "@/lib/redux/services/profileApi";
+import { Loader2 } from "lucide-react";
 
 export interface ReviewItem {
     id: string;
@@ -16,35 +18,46 @@ interface MyReviewsSectionProps {
     reviews?: ReviewItem[];
 }
 
-const defaultReviews: ReviewItem[] = [
-    {
-        id: "review_01",
-        title: "WAYO Station Nguyễn Trãi",
-        comment: "Trạm sạch sẽ, nhân viên hỗ trợ nhiệt tình. Tốc độ sạc nhanh đúng như quảng cáo.",
-        rating: 5,
-        createdAt: "2025-09-20T09:30:00+07:00",
-        location: "Quận 5, TP.HCM",
-    },
-    {
-        id: "review_02",
-        title: "WAYO Station Phú Mỹ Hưng",
-        comment: "Không gian rộng nhưng cuối tuần hơi đông. Hy vọng mở thêm nhiều cổng sạc nhanh.",
-        rating: 4,
-        createdAt: "2025-09-15T18:45:00+07:00",
-        location: "Quận 7, TP.HCM",
-    },
-    {
-        id: "review_03",
-        title: "Dịch vụ cứu hộ WAYO",
-        comment: "Đội kỹ thuật tới rất nhanh, hỗ trợ tận tình. Chi phí minh bạch.",
-        rating: 5,
-        createdAt: "2025-08-30T22:10:00+07:00",
-        location: "Biên Hòa, Đồng Nai",
-    },
-];
 
-const MyReviewsSection: React.FC<MyReviewsSectionProps> = ({ reviews }) => {
-    const reviewList = reviews && reviews.length > 0 ? reviews : defaultReviews;
+
+
+
+const MyReviewsSection: React.FC<MyReviewsSectionProps> = () => {
+    const { data, isLoading, isError } = useGetMyReviewsQuery({ page: 0, size: 20 });
+    
+    // Map API response to Component's ReviewItem structure
+    const reviewList: ReviewItem[] = (data?.content || []).map((item: ReviewResponse) => ({
+        id: item.id.toString(),
+        title: item.targetName || "Trạm sạc",
+        comment: item.comment,
+        rating: item.stars,
+        createdAt: item.createdAt,
+        location: item.targetAddress,
+    }));
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center py-12">
+                <Loader2 className="animate-spin text-gray-400" />
+            </div>
+        );
+    }
+
+    if (isError) {
+         return (
+            <div className="text-center py-12 text-red-500">
+                Không thể tải danh sách đánh giá. Vui lòng thử lại sau.
+            </div>
+        );
+    }
+
+    if (reviewList.length === 0) {
+        return (
+             <div className="text-center py-12 text-gray-500">
+                Bạn chưa có đánh giá nào.
+            </div>
+        );
+    }
 
     return (
         <section className="space-y-6" aria-labelledby="my-reviews-section">
@@ -53,7 +66,7 @@ const MyReviewsSection: React.FC<MyReviewsSectionProps> = ({ reviews }) => {
                     Đánh giá của tôi
                 </h2>
                 <p className="text-sm text-gray-600 max-w-3xl">
-                    Xem lại các bình luận và điểm số bạn đã gửi cho trạm sạc hoặc dịch vụ cứu hộ. Đây là giao diện demo hiển thị dữ liệu mẫu.
+                    Xem lại các bình luận và điểm số bạn đã gửi cho trạm sạc.
                 </p>
             </div>
 
@@ -64,13 +77,13 @@ const MyReviewsSection: React.FC<MyReviewsSectionProps> = ({ reviews }) => {
                         className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 flex flex-col gap-3"
                     >
                         <header className="flex items-center justify-between">
-                            <h3 className="text-base font-semibold text-gray-900">{review.title}</h3>
+                            <h3 className="text-base font-semibold text-gray-900 line-clamp-1" title={review.title}>{review.title}</h3>
                             <Rating rating={review.rating} />
                         </header>
-                        <p className="text-sm text-gray-600 leading-relaxed">{review.comment}</p>
+                        <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{review.comment}</p>
                         <footer className="text-xs text-gray-500 flex items-center justify-between">
                             <span>{formatVietnameseDate(review.createdAt)}</span>
-                            {review.location && <span>{review.location}</span>}
+                            {review.location && <span className="max-w-[150px] truncate" title={review.location}>{review.location}</span>}
                         </footer>
                     </article>
                 ))}

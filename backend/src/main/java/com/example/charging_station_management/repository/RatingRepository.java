@@ -10,4 +10,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface RatingRepository extends JpaRepository<Rating, Integer> {
     Page<Rating> findByTargetTypeAndTargetId(TargetType targetType, Integer targetId, Pageable pageable);
+
+    boolean existsBySessionId(Integer sessionId);
+    
+    Page<Rating> findByCustomer_IdOrderByCreatedAtDesc(Integer customerId, Pageable pageable);
 }

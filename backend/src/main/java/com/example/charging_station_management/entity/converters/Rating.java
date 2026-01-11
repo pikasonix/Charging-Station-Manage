@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "ratings", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"customer_id", "target_type", "target_id"})
+        @UniqueConstraint(columnNames = {"customer_id", "target_type", "target_id", "session_id"})
 })
 @Data
 @NoArgsConstructor
@@ -30,6 +30,9 @@ public class Rating {
 
     @Column(nullable = false)
     private Integer targetId;
+
+    @Column(name = "session_id", nullable = false)
+    private Integer sessionId;
 
     @Column(nullable = false)
     private Integer stars;
