@@ -14,9 +14,9 @@ import {
   useGetVendorStationsQuery,
   useGetCustomerVehiclesQuery
 
-} from "@/lib/redux/services/adminApi"; // Đường dẫn file api của bạn
+} from "@/lib/redux/services/adminApi";
 
-// --- MOCK DATA CHO CHI TIẾT (VÌ CHƯA CÓ API THẬT CHO PHẦN NÀY) ---
+// --- MOCK DATA GIỮ NGUYÊN ---
 const MOCK_VENDOR_STATIONS = [
   { id: 1, name: "Trạm Vincom Center", address: "72 Lê Thánh Tôn, Q1", ports: 10, revenue: "15.000.000 đ" },
   { id: 2, name: "Trạm Landmark 81", address: "Bình Thạnh", ports: 5, revenue: "8.200.000 đ" },
@@ -27,26 +27,18 @@ const MOCK_CUSTOMER_VEHICLES = [
   { id: 2, model: "VinFast VFe34", license: "51K-999.99", battery: "42%", status: "Charging" },
 ];
 
-// Hàm tạo mật khẩu mạnh (đảm bảo Backend không từ chối)
+// Hàm tạo mật khẩu mạnh
 const generateStrongPassword = () => {
   const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-  // Đảm bảo có đủ độ phức tạp: Hoa, Thường, Số, Ký tự đặc biệt
-  let password =
-    "A" + // 1 Chữ hoa
-    "a" + // 1 Chữ thường
-    "1" + // 1 Số
-    "!";  // 1 Ký tự đặc biệt
-
-  // Random thêm 8 ký tự nữa
+  let password = "A" + "a" + "1" + "!";
   for (let i = 0; i < 8; i++) {
     password += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return password;
 };
 
+// --- COMPONENT: MODAL TẠO MỚI (Responsive Updated) ---
 export function CreateUserModal({ isOpen, onClose, onSuccess }: any) {
-  // State form
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -60,19 +52,15 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: any) {
     e.preventDefault();
     try {
       const password = generateStrongPassword();
-
-      // 👇 XỬ LÝ DỮ LIỆU AN TOÀN TRƯỚC KHI GỬI
       const payload = {
-        name: form.name.trim(),   // Xóa khoảng trắng thừa
+        name: form.name.trim(),
         email: form.email.trim(),
-        phone: form.phone.trim(), // Quan trọng: Phone thường bị lỗi regex nếu có space
-        role: form.role,          // Nếu backend cần 'ROLE_CUSTOMER', hãy sửa thành: `ROLE_${form.role}`
+        phone: form.phone.trim(),
+        role: form.role,
         password: password,
-        // status: 1, // ⚠️ TẠM ẨN: Nhiều API tạo mới (Register) không nhận trường status. Nếu backend bạn cần, hãy bỏ comment dòng này.
       };
 
       console.log("Submitting Payload:", payload);
-
       await createUser(payload).unwrap();
 
       toast.success("Tạo tài khoản thành công!", {
@@ -91,15 +79,11 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: any) {
 
     } catch (err: any) {
       console.error("Full API Error Object:", err);
-
-      // 👇 LOGIC BẮT LỖI CHI TIẾT (Validation Errors)
       let errorMsg = "Dữ liệu không hợp lệ";
-
       if (err?.data) {
         if (typeof err.data === 'string') {
           errorMsg = err.data;
         } else if (err.data.fieldErrors && Array.isArray(err.data.fieldErrors)) {
-          // Trường hợp Spring Boot trả về list lỗi validation
           errorMsg = err.data.fieldErrors.map((e: any) => `${e.field}: ${e.message}`).join(", ");
         } else if (err.data.message) {
           errorMsg = err.data.message;
@@ -107,7 +91,6 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: any) {
           errorMsg = err.data.error;
         }
       }
-
       toast.error(`Tạo thất bại: ${errorMsg}`);
     }
   };
@@ -116,10 +99,11 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: any) {
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-in fade-in">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+      {/* Thêm max-h-[90vh] và overflow-y-auto để cuộn được trên màn hình nhỏ */}
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto flex flex-col">
 
         {/* Header Modal */}
-        <div className="p-4 border-b flex justify-between items-center bg-gray-50">
+        <div className="p-4 border-b flex justify-between items-center bg-gray-50 sticky top-0 bg-white z-10">
           <h3 className="font-bold text-lg text-gray-800">Tạo tài khoản mới</h3>
           <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded-full transition">
             <X className="w-5 h-5 text-gray-500" />
@@ -154,6 +138,8 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: any) {
           <div>
             <label className="block text-sm font-medium mb-1 text-gray-700">Số điện thoại <span className="text-red-500">*</span></label>
             <input
+              // Thêm type="tel" để hiện bàn phím số trên điện thoại
+              type="tel"
               className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
               required
               value={form.phone}
@@ -173,7 +159,6 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: any) {
                 <option value="CUSTOMER">Khách hàng (Customer)</option>
                 <option value="VENDOR">Đối tác (Vendor)</option>
               </select>
-              {/* Mũi tên custom cho select box đẹp hơn */}
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                 <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" /></svg>
               </div>
@@ -200,10 +185,8 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: any) {
   );
 }
 
-// --- COMPONENT: MODAL CHI TIẾT USER ---
+// --- COMPONENT: MODAL CHI TIẾT USER (Responsive Updated) ---
 function UserDetailModal({ user, onClose }: { user: any, onClose: () => void }) {
-  // Gọi API lấy dữ liệu chi tiết dựa trên Role
-  // skip: !user... nghĩa là nếu chưa có user hoặc sai role thì không gọi API
   const { data: stationsData, isLoading: loadStations } = useGetVendorStationsQuery(
     { id: user?.id },
     { skip: !user || user.role !== 'VENDOR' }
@@ -213,28 +196,25 @@ function UserDetailModal({ user, onClose }: { user: any, onClose: () => void }) 
     { id: user?.id },
     { skip: !user || user.role !== 'CUSTOMER' }
   );
-  // 👇 VỊ TRÍ 1: Xem toàn bộ cục data API trả về (bao gồm status, message, data...)
-  if (stationsData) console.log("🔥 API Full Response (Stations):", stationsData);
-  if (vehiclesData) console.log("🔥 API Full Response (Vehicles):", vehiclesData);
-  if (!user) return null;
 
-  // Lấy list từ response API
   const stations = stationsData?.data?.content || [];
   const vehicles = vehiclesData?.data?.content || [];
-  console.log("✅ Final Stations List:", stations);
-  console.log("✅ Final Vehicles List:", vehicles);
+
+  if (!user) return null;
+
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 animate-in fade-in">
+      {/* Thêm w-full để modal không bị quá nhỏ trên mobile */}
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-slate-800 to-slate-900 p-6 text-white flex justify-between items-start">
+        <div className="bg-gradient-to-r from-slate-800 to-slate-900 p-6 text-white flex justify-between items-start sticky top-0 z-10">
           <div className="flex gap-4 items-center">
-            <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-2xl font-bold border-4 border-slate-700">
+            <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-500 rounded-full flex items-center justify-center text-xl md:text-2xl font-bold border-4 border-slate-700 flex-shrink-0">
               {user.name?.charAt(0) || "U"}
             </div>
             <div>
-              <h2 className="text-xl font-bold">{user.name}</h2>
-              <div className="text-slate-300 text-sm flex items-center gap-2 mt-1">
+              <h2 className="text-lg md:text-xl font-bold break-words">{user.name}</h2>
+              <div className="text-slate-300 text-xs md:text-sm flex flex-wrap items-center gap-2 mt-1">
                 <span className={`px-2 py-0.5 rounded text-xs font-bold ${user.role === 'VENDOR' ? 'bg-purple-500' : 'bg-green-500'}`}>
                   {user.role}
                 </span>
@@ -245,9 +225,9 @@ function UserDetailModal({ user, onClose }: { user: any, onClose: () => void }) 
           <button onClick={onClose} className="text-white/70 hover:text-white bg-white/10 p-1 rounded-full"><X className="w-5 h-5" /></button>
         </div>
 
-        <div className="p-6 space-y-6">
-          {/* Thông tin cơ bản */}
-          <div className="grid grid-cols-2 gap-4">
+        <div className="p-4 md:p-6 space-y-6">
+          {/* Thông tin cơ bản - Responsive Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-3 bg-gray-50 rounded-lg border">
               <div className="flex items-center gap-2 text-gray-500 text-xs uppercase mb-1 font-semibold"><Mail className="w-3 h-3" /> Email</div>
               <div className="text-gray-900 font-medium break-all">{user.email}</div>
@@ -268,31 +248,27 @@ function UserDetailModal({ user, onClose }: { user: any, onClose: () => void }) 
             </div>
           </div>
 
-          {/* Dữ liệu riêng theo Role */}
+          {/* Dữ liệu riêng theo Role - Table Scroll */}
           {user.role === 'VENDOR' ? (
             <div>
               <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2 uppercase">
                 <Zap className="w-4 h-4 text-yellow-500" /> Danh sách trạm sạc sở hữu
               </h3>
-              <div className="border rounded-lg overflow-hidden">
-                <table className="w-full text-sm text-left">
+              <div className="border rounded-lg overflow-x-auto"> {/* Thêm overflow-x-auto */}
+                <table className="w-full text-sm text-left min-w-[500px]"> {/* Thêm min-w */}
                   <thead className="bg-gray-100 text-xs text-gray-500 uppercase">
                     <tr><th className="p-3">Tên trạm</th><th className="p-3">Địa chỉ</th><th className="p-3">Số Cổng (Số trụ)</th></tr>
                   </thead>
                   <tbody className="divide-y">
-                    {/* 1. Xử lý trạng thái đang tải */}
                     {loadStations ? (
                       <tr><td colSpan={3} className="p-4 text-center text-gray-500">Đang tải dữ liệu...</td></tr>
                     ) : stations.length === 0 ? (
-                      /* 2. Xử lý khi không có dữ liệu */
                       <tr><td colSpan={3} className="p-4 text-center text-gray-500">Đối tác này chưa có trạm sạc nào.</td></tr>
                     ) : (
-                      /* 3. Map dữ liệu thật (stations) */
                       stations.map((st: any) => (
                         <tr key={st.id}>
                           <td className="p-3 font-medium">{st.name}</td>
-                          <td className="p-3 text-gray-500">{st.address}</td>
-                          {/* Backend trả về ports và poles, hiển thị ở đây */}
+                          <td className="p-3 text-gray-500 truncate max-w-[150px]">{st.address}</td>
                           <td className="p-3 font-medium text-blue-600 font-semibold">
                             {st.ports} cổng ({st.poles} trụ)
                           </td>
@@ -308,28 +284,23 @@ function UserDetailModal({ user, onClose }: { user: any, onClose: () => void }) 
               <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2 uppercase">
                 <Car className="w-4 h-4 text-blue-500" /> Danh sách phương tiện
               </h3>
-              <div className="border rounded-lg overflow-hidden">
-                <table className="w-full text-sm text-left">
+              <div className="border rounded-lg overflow-x-auto">
+                <table className="w-full text-sm text-left min-w-[400px]">
                   <thead className="bg-gray-100 text-xs text-gray-500 uppercase">
                     <tr><th className="p-3">Mẫu xe</th><th className="p-3">Biển số</th><th className="p-3">Pin</th></tr>
                   </thead>
                   <tbody className="divide-y">
-                    {/* 1. Xử lý trạng thái đang tải */}
                     {loadVehicles ? (
                       <tr><td colSpan={3} className="p-4 text-center text-gray-500">Đang tải dữ liệu...</td></tr>
                     ) : vehicles.length === 0 ? (
-                      /* 2. Xử lý khi không có dữ liệu */
                       <tr><td colSpan={3} className="p-4 text-center text-gray-500">Khách hàng chưa đăng ký xe nào.</td></tr>
                     ) : (
-                      /* 3. Map dữ liệu thật (vehicles) */
                       vehicles.map((v: any) => (
                         <tr key={v.id}>
                           <td className="p-3 font-medium">{v.model}</td>
-                          {/* Chú ý: Backend trả về licensePlate, không phải license */}
                           <td className="p-3 font-mono bg-gray-50 rounded text-slate-700">
                             {v.licensePlate || "Đang cập nhật"}
                           </td>
-                          {/* Chú ý: Backend trả về batteryCapacity */}
                           <td className="p-3 text-green-600 font-bold">
                             {v.batteryCapacity ? `${v.batteryCapacity} kWh` : "N/A"}
                           </td>
@@ -347,27 +318,23 @@ function UserDetailModal({ user, onClose }: { user: any, onClose: () => void }) 
   );
 }
 
-// --- MAIN COMPONENT: QUẢN LÝ NGƯỜI DÙNG ---
+// --- MAIN COMPONENT: QUẢN LÝ NGƯỜI DÙNG (Responsive Updated) ---
 export default function UserManagement() {
-  // State quản lý Filters
   const [filters, setFilters] = useState<UserFilterParams>({
     page: 0, size: 10, keyword: '', role: undefined, status: undefined
   });
 
-  // State UI
   const [isCreateOpen, setCreateOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<any>(null); // Lưu user đang xem chi tiết
+  const [selectedUser, setSelectedUser] = useState<any>(null);
 
-  // Redux API Hooks
   const { data: usersData, isLoading, isFetching } = useGetUsersQuery(filters);
   const [deleteUser, { isLoading: isDeleting }] = useDeleteUserMutation();
 
   const users = usersData?.data?.content || [];
   const totalPages = usersData?.data?.totalPages || 0;
 
-  // Handlers
   const handleFilterChange = (key: keyof UserFilterParams, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value, page: 0 })); // Reset về trang 1 khi filter
+    setFilters(prev => ({ ...prev, [key]: value, page: 0 }));
   };
 
   const handleDelete = async (id: number) => {
@@ -383,7 +350,8 @@ export default function UserManagement() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Header Page */}
+
+      {/* 1. Header Page Responsive: Stack dọc trên mobile, ngang trên desktop */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
@@ -394,15 +362,15 @@ export default function UserManagement() {
 
         <button
           onClick={() => setCreateOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-lg shadow-blue-200 transition"
+          className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 shadow-lg shadow-blue-200 transition"
         >
           <Plus className="w-4 h-4" /> Thêm mới
         </button>
       </div>
 
-      {/* Filter Bar */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-wrap gap-4 items-end">
-        <div className="flex-1 min-w-[200px]">
+      {/* 2. Filter Bar Responsive: Stack dọc các input */}
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row gap-4 items-end">
+        <div className="w-full md:flex-1">
           <label className="text-xs font-semibold text-gray-500 mb-1 block">Tìm kiếm</label>
           <div className="relative">
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
@@ -416,9 +384,7 @@ export default function UserManagement() {
           </div>
         </div>
 
-
-
-        <div className="w-[190px]">
+        <div className="w-full md:w-[190px]">
           <label className="text-xs font-semibold text-gray-500 mb-1 block">Trạng thái</label>
           <select
             className="w-full py-2 px-3 border rounded-lg text-sm bg-white"
@@ -432,16 +398,16 @@ export default function UserManagement() {
         </div>
       </div>
 
-      {/* Table List */}
+      {/* 3. Table List Responsive: Thêm min-w để kích hoạt scroll ngang */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left text-sm min-w-[800px]"> {/* min-w quan trọng cho scroll */}
             <thead className="bg-gray-50 text-gray-500 font-semibold uppercase text-xs">
               <tr>
-                <th className="p-4">User Info</th>
-                <th className="p-4">Role</th>
-                <th className="p-4">Status</th>
-                <th className="p-4 text-right">Actions</th>
+                <th className="p-4 whitespace-nowrap">User Info</th>
+                <th className="p-4 whitespace-nowrap">Role</th>
+                <th className="p-4 whitespace-nowrap">Status</th>
+                <th className="p-4 text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -454,12 +420,12 @@ export default function UserManagement() {
                   <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600">
+                        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600 flex-shrink-0">
                           {user.name?.charAt(0)}
                         </div>
-                        <div>
-                          <div className="font-medium text-gray-900">{user.name}</div>
-                          <div className="text-xs text-gray-500">{user.email}</div>
+                        <div className="min-w-0">
+                          <div className="font-medium text-gray-900 truncate max-w-[200px]">{user.name}</div>
+                          <div className="text-xs text-gray-500 truncate max-w-[200px]">{user.email}</div>
                         </div>
                       </div>
                     </td>
@@ -505,7 +471,7 @@ export default function UserManagement() {
           </table>
         </div>
 
-        {/* Pagination Simple */}
+        {/* 4. Pagination */}
         {totalPages > 0 && (
           <div className="p-4 border-t bg-gray-50 flex justify-end gap-2">
             <button
@@ -529,7 +495,7 @@ export default function UserManagement() {
       <CreateUserModal
         isOpen={isCreateOpen}
         onClose={() => setCreateOpen(false)}
-        onSuccess={() => setFilters({ ...filters, page: 0 })} // Refresh list
+        onSuccess={() => setFilters({ ...filters, page: 0 })}
       />
 
       <UserDetailModal
