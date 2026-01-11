@@ -183,7 +183,7 @@ public class ChargingSessionServiceImpl implements ChargingSessionService {
             throw new RuntimeException("User ID is required");
 
         // Check if user already has an active session
-        ChargingSessionDetailResponse activeSession = getCurrentSession(userId);
+        ChargingSession activeSession = getCurrentSessionEntity(userId); // Use helper method
         if (activeSession != null) {
             throw new RuntimeException(
                     "Bạn đang có một phiên sạc đang diễn ra. Vui lòng kết thúc nó trước khi bắt đầu phiên mới.");
@@ -281,6 +281,14 @@ public class ChargingSessionServiceImpl implements ChargingSessionService {
 
     @Override
     public ChargingSessionDetailResponse getCurrentSession(Integer userId) {
+        ChargingSession currentSession = getCurrentSessionEntity(userId);
+        if (currentSession != null) {
+            return convertToDetailResponse(currentSession);
+        }
+        return null;
+    }
+
+    private ChargingSession getCurrentSessionEntity(Integer userId) {
         // Updated implementation: Get the latest ACTIVE session to support multiple
         // sessions
         // Returns the most recently started session that is still CHARGING
@@ -331,7 +339,7 @@ public class ChargingSessionServiceImpl implements ChargingSessionService {
                 }
             }
 
-            return convertToDetailResponse(currentSession);
+            return currentSession;
         }
         return null;
     }
@@ -345,6 +353,8 @@ public class ChargingSessionServiceImpl implements ChargingSessionService {
     public java.util.List<ChargingSessionDetailResponse> getActiveSessions(Integer userId) {
         java.util.List<ChargingSession> activeSessions = chargingSessionRepository
                 .findByElectricVehicle_Customer_IdAndStatusOrderByStartTimeDesc(userId, SessionStatus.CHARGING);
+
+        java.util.List<ChargingSessionDetailResponse> responseList = new java.util.ArrayList<>();
 
         for (ChargingSession session : activeSessions) {
             boolean hasDbValues = (session.getEnergyKwh() != null
@@ -376,10 +386,9 @@ public class ChargingSessionServiceImpl implements ChargingSessionService {
                 session.setEnergyKwh(energy);
                 session.setCost(cost);
             }
+            responseList.add(convertToDetailResponse(session));
         }
-        return activeSessions.stream()
-                .map(this::convertToDetailResponse)
-                .collect(java.util.stream.Collectors.toList());
+        return responseList;
     }
 
     /**
@@ -395,12 +404,24 @@ public class ChargingSessionServiceImpl implements ChargingSessionService {
         if (prices == null || prices.isEmpty()) {
             return java.math.BigDecimal.ZERO; // or default system price
         }
+        
+        // Sort prices by effectiveFrom DESC to prioritize latest price configuration
+        prices.sort((p1, p2) -> {
+            if (p1.getEffectiveFrom() == null) return 1;
+            if (p2.getEffectiveFrom() == null) return -1;
+            return p2.getEffectiveFrom().compareTo(p1.getEffectiveFrom());
+        });
 
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
         java.time.LocalTime currentTime = now.toLocalTime();
         java.time.LocalDate currentDate = now.toLocalDate();
 
         for (Price price : prices) {
+            // Filter: Only consider CHARGING prices
+            if (price.getName() != com.example.charging_station_management.entity.enums.PriceName.CHARGING) {
+                continue;
+            }
+
             // Check Date Range (EffectiveFrom <= Today <= EffectiveTo)
             boolean isDateValid = !currentDate.isBefore(price.getEffectiveFrom())
                     && (price.getEffectiveTo() == null || !currentDate.isAfter(price.getEffectiveTo()));
