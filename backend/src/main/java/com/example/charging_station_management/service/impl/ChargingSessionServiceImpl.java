@@ -175,7 +175,7 @@ public class ChargingSessionServiceImpl implements ChargingSessionService {
 
     @Override
     @Transactional
-    public ChargingSession startSession(Integer userId, Integer connectorId, Integer vehicleId) {
+    public ChargingSessionDetailResponse startSession(Integer userId, Integer connectorId, Integer vehicleId) {
         log.info("User {} requesting start session on connector {} with vehicle {}", userId, connectorId, vehicleId);
 
         // 1. Check User
@@ -183,7 +183,7 @@ public class ChargingSessionServiceImpl implements ChargingSessionService {
             throw new RuntimeException("User ID is required");
 
         // Check if user already has an active session
-        ChargingSession activeSession = getCurrentSession(userId);
+        ChargingSessionDetailResponse activeSession = getCurrentSession(userId);
         if (activeSession != null) {
             throw new RuntimeException(
                     "Bạn đang có một phiên sạc đang diễn ra. Vui lòng kết thúc nó trước khi bắt đầu phiên mới.");
@@ -221,12 +221,13 @@ public class ChargingSessionServiceImpl implements ChargingSessionService {
         // 5. Update Connector
         connector.setStatus(com.example.charging_station_management.entity.enums.ConnectorStatus.INUSE);
         connectorRepository.save(connector);
-        return chargingSessionRepository.save(session);
+        ChargingSession savedSession = chargingSessionRepository.save(session);
+        return convertToDetailResponse(savedSession);
     }
 
     @Override
     @Transactional
-    public ChargingSession stopSession(Integer userId, Integer sessionId) {
+    public ChargingSessionDetailResponse stopSession(Integer userId, Integer sessionId) {
         log.info("User {} requesting stop session {}", userId, sessionId);
 
         ChargingSession session = chargingSessionRepository.findById(sessionId)
@@ -274,11 +275,12 @@ public class ChargingSessionServiceImpl implements ChargingSessionService {
         connector.setStatus(com.example.charging_station_management.entity.enums.ConnectorStatus.AVAILABLE);
         connectorRepository.save(connector);
 
-        return chargingSessionRepository.save(session);
+        ChargingSession savedSession = chargingSessionRepository.save(session);
+        return convertToDetailResponse(savedSession);
     }
 
     @Override
-    public ChargingSession getCurrentSession(Integer userId) {
+    public ChargingSessionDetailResponse getCurrentSession(Integer userId) {
         // Updated implementation: Get the latest ACTIVE session to support multiple
         // sessions
         // Returns the most recently started session that is still CHARGING
@@ -329,7 +331,7 @@ public class ChargingSessionServiceImpl implements ChargingSessionService {
                 }
             }
 
-            return currentSession;
+            return convertToDetailResponse(currentSession);
         }
         return null;
     }
@@ -340,7 +342,7 @@ public class ChargingSessionServiceImpl implements ChargingSessionService {
     }
 
     @Override
-    public java.util.List<ChargingSession> getActiveSessions(Integer userId) {
+    public java.util.List<ChargingSessionDetailResponse> getActiveSessions(Integer userId) {
         java.util.List<ChargingSession> activeSessions = chargingSessionRepository
                 .findByElectricVehicle_Customer_IdAndStatusOrderByStartTimeDesc(userId, SessionStatus.CHARGING);
 
@@ -375,7 +377,9 @@ public class ChargingSessionServiceImpl implements ChargingSessionService {
                 session.setCost(cost);
             }
         }
-        return activeSessions;
+        return activeSessions.stream()
+                .map(this::convertToDetailResponse)
+                .collect(java.util.stream.Collectors.toList());
     }
 
     /**

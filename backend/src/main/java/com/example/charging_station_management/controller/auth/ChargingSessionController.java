@@ -1,5 +1,6 @@
 package com.example.charging_station_management.controller.auth;
 
+import com.example.charging_station_management.dto.response.ChargingSessionDetailResponse;
 import com.example.charging_station_management.entity.converters.ChargingSession;
 import com.example.charging_station_management.utils.CustomUserDetails;
 import com.example.charging_station_management.service.ChargingSessionService;
@@ -33,7 +34,7 @@ public class ChargingSessionController {
         }
 
         try {
-            ChargingSession session = sessionService.startSession(userDetails.getId(), connectorId, vehicleId);
+            ChargingSessionDetailResponse session = sessionService.startSession(userDetails.getId(), connectorId, vehicleId);
             return ResponseEntity.ok(session);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -45,7 +46,7 @@ public class ChargingSessionController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Integer sessionId) {
         try {
-            ChargingSession session = sessionService.stopSession(userDetails.getId(), sessionId);
+            ChargingSessionDetailResponse session = sessionService.stopSession(userDetails.getId(), sessionId);
             return ResponseEntity.ok(session);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -54,7 +55,7 @@ public class ChargingSessionController {
 
     @GetMapping("/current")
     public ResponseEntity<?> getCurrentSession(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        ChargingSession session = sessionService.getCurrentSession(userDetails.getId());
+        ChargingSessionDetailResponse session = sessionService.getCurrentSession(userDetails.getId());
         if (session == null) {
             return ResponseEntity.noContent().build();
         }
@@ -62,8 +63,8 @@ public class ChargingSessionController {
     }
 
     @GetMapping("/active")
-    public ResponseEntity<java.util.List<ChargingSession>> getActiveSessions(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        java.util.List<ChargingSession> sessions = sessionService.getActiveSessions(userDetails.getId());
+    public ResponseEntity<java.util.List<ChargingSessionDetailResponse>> getActiveSessions(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        java.util.List<ChargingSessionDetailResponse> sessions = sessionService.getActiveSessions(userDetails.getId());
         return ResponseEntity.ok(sessions);
     }
 
