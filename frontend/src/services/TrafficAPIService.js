@@ -1,26 +1,3 @@
-/**
- * IMPORTANT NOTE: TRACK ASIA DOES NOT HAVE TRAFFIC API!
- * 
- * Track Asia only provides:
- * ✅ Maps JavaScript API
- * ✅ Geocoding API  
- * ✅ Routing API
- * ✅ Autocomplete API
- * ❌ NO Traffic API
- * 
- * This service integrates with EXTERNAL traffic APIs:
- * - Mapbox Traffic API (requires token)
- * - HERE Traffic API (requires API key)
- * - Sample data generation (free fallback)
- * 
- * For real traffic data in Vietnam, you need to:
- * 1. Get Mapbox token: https://mapbox.com/pricing
- * 2. Or get HERE API key: https://developer.here.com/pricing
- * 3. Or use sample data for demo purposes
- */
-
-// TrafficAPI Service - Integrates with REAL traffic data sources for Vietnam
-
 class TrafficAPIService {
     constructor() {
         // Real traffic APIs that work in Vietnam
