@@ -31,7 +31,6 @@ export interface DbProject {
   updated_at?: string;
 }
 
-
 export interface ReviewResponse {
   id: number;
   customerName: string;
@@ -49,7 +48,6 @@ export interface ReviewListResponse {
   size: number;
   number: number;
 }
-
 
 export interface ProjectWithFounder extends DbProject {
   profiles?: {
@@ -207,7 +205,10 @@ export const profileApi = createApi({
         result ? [{ type: "Profile", id: result.id }] : [],
     }),
 
-    updateProfile: builder.mutation<DbProfile, Partial<DbProfile> & { id: string }>({
+    updateProfile: builder.mutation<
+      DbProfile,
+      Partial<DbProfile> & { id: string }
+    >({
       query: ({ id, ...body }) => ({
         url: `/api/customer/profile/${id}`,
         method: "PUT",
@@ -217,7 +218,10 @@ export const profileApi = createApi({
         arg ? [{ type: "Profile", id: arg.id }] : [],
     }),
 
-    uploadAvatar: builder.mutation<{ path: string; publicUrl: string }, { file: File }>({
+    uploadAvatar: builder.mutation<
+      { path: string; publicUrl: string },
+      { file: File }
+    >({
       query: ({ file }) => {
         const formData = new FormData();
         formData.append("file", file);
@@ -234,9 +238,9 @@ export const profileApi = createApi({
       providesTags: (result) =>
         result
           ? [
-            ...result.map(({ id }) => ({ type: "Project" as const, id })),
-            { type: "Project", id: "LIST" },
-          ]
+              ...result.map(({ id }) => ({ type: "Project" as const, id })),
+              { type: "Project", id: "LIST" },
+            ]
           : [{ type: "Project", id: "LIST" }],
     }),
 
@@ -252,7 +256,10 @@ export const profileApi = createApi({
         id ? [{ type: "Project", id }] : [],
     }),
 
-    getProfileOverview: builder.query<ProfileOverview, { userId: string; role?: string }>({
+    getProfileOverview: builder.query<
+      ProfileOverview,
+      { userId: string; role?: string }
+    >({
       query: ({ userId, role }) => {
         const endpoint = role === "VENDOR" ? "vendor" : "customer";
         return `/api/${endpoint}/profile/${userId}/overview`;
@@ -260,16 +267,21 @@ export const profileApi = createApi({
       providesTags: (result, error, { userId }) =>
         userId
           ? [
-            { type: "Profile", id: userId },
-            { type: "Project", id: userId },
-          ]
+              { type: "Profile", id: userId },
+              { type: "Project", id: userId },
+            ]
           : [],
     }),
 
     getDashboard: builder.query<DashboardResponse, string>({
       query: (userId) => `/api/customer/dashboard?userId=${userId}`,
       providesTags: (result, error, userId) =>
-        userId ? [{ type: "Profile", id: userId }, { type: "Project", id: userId }] : [],
+        userId
+          ? [
+              { type: "Profile", id: userId },
+              { type: "Project", id: userId },
+            ]
+          : [],
     }),
 
     updateProjectBasics: builder.mutation<
@@ -332,14 +344,20 @@ export const profileApi = createApi({
       ],
     }),
 
-    getChargingHistory: builder.query<ChargingHistoryResponse, { userId: string; page?: number; size?: number }>({
+    getChargingHistory: builder.query<
+      ChargingHistoryResponse,
+      { userId: string; page?: number; size?: number }
+    >({
       query: ({ userId, page = 0, size = 10 }) =>
         `/api/customer/${userId}/history?page=${page}&size=${size}`,
       providesTags: (result, error, { userId }) =>
         result ? [{ type: "Profile", id: `${userId}-history` }] : [],
     }),
 
-    getTransactions: builder.query<TransactionHistoryResponse, { userId: string; page?: number; size?: number }>({
+    getTransactions: builder.query<
+      TransactionHistoryResponse,
+      { userId: string; page?: number; size?: number }
+    >({
       query: ({ userId, page = 0, size = 10 }) =>
         `/api/customer/${userId}/transactions?page=${page}&size=${size}`,
       providesTags: (result, error, { userId }) =>
@@ -347,7 +365,8 @@ export const profileApi = createApi({
     }),
     getVendorRevenueStats: builder.query<VendorRevenueStats, void>({
       query: () => `/api/vendor/stats/revenue`,
-      transformResponse: (response: BaseResponse<VendorRevenueStats>) => response.data,
+      transformResponse: (response: BaseResponse<VendorRevenueStats>) =>
+        response.data,
       providesTags: ["Profile"],
     }),
     getVendorChartData: builder.query<ChartData[], { days: number }>({
@@ -355,32 +374,41 @@ export const profileApi = createApi({
       transformResponse: (response: BaseResponse<ChartData[]>) => response.data,
       providesTags: ["Profile"],
     }),
-    getVendorChartDataByRange: builder.query<ChartData[], { from: string; to: string }>({
-      query: ({ from, to }) => `/api/vendor/stats/chart/range?from=${from}&to=${to}`,
+    getVendorChartDataByRange: builder.query<
+      ChartData[],
+      { from: string; to: string }
+    >({
+      query: ({ from, to }) =>
+        `/api/vendor/stats/chart/range?from=${from}&to=${to}`,
       transformResponse: (response: BaseResponse<ChartData[]>) => response.data,
       providesTags: ["Profile"],
     }),
 
     // --- Vendor Session Management ---
-    getVendorActiveSessions: builder.query<ChargingSessionDetailResponse[], void>({ // Using ChargingSessionDetailResponse as return type
+    getVendorActiveSessions: builder.query<
+      ChargingSessionDetailResponse[],
+      void
+    >({
+      // Using ChargingSessionDetailResponse as return type
       query: () => `/api/vendor/sessions/active?size=100`, // Fetch all active (limit 100)
       transformResponse: (response: BaseResponse<ChargingHistoryResponse>) => {
         // The Controller returns Page response in "data", so we map it.
-        // Wait, the controller returns BaseApiResponse<Map<String, Object>> (Page response)
-        // Actually the controller returns BaseApiResponse(createPageResponse(sessions))
-        // createPageResponse returns Map.
-        // Let's refine the type.
-        // For now, let's assume the response structure matches "ChargingHistoryResponse" roughly 
-        // but "content" is the list.
-        // However, my controller snippet for active sessions returns:
-        // BaseApiResponse.success(createPageResponse(sessions))
-        // content field has the list.
-        return (response.data as any).content;
+        return (response.data as ChargingHistoryResponse)
+          .content as unknown as ChargingSessionDetailResponse[];
       },
       providesTags: ["Profile"], // Invalidate when profile updates or can add specific tag
     }),
 
-    getVendorSessionHistory: builder.query<BaseResponse<any>, { stationId?: number; from?: string; to?: string; page?: number; size?: number }>({
+    getVendorSessionHistory: builder.query<
+      ChargingHistoryResponse,
+      {
+        stationId?: number;
+        from?: string;
+        to?: string;
+        page?: number;
+        size?: number;
+      }
+    >({
       query: ({ stationId, from, to, page = 0, size = 10 }) => {
         let qs = `size=${size}&page=${page}`;
         if (stationId) qs += `&stationId=${stationId}`;
@@ -394,24 +422,44 @@ export const profileApi = createApi({
       providesTags: ["Profile"],
     }),
 
-    getVendorSessionDetail: builder.query<ChargingSessionDetailResponse, number>({
+    getVendorSessionDetail: builder.query<
+      ChargingSessionDetailResponse,
+      number
+    >({
       query: (sessionId) => `/api/vendor/sessions/${sessionId}`,
-      transformResponse: (response: BaseResponse<ChargingSessionDetailResponse>) => response.data,
-      providesTags: (result, error, id) => [{ type: "Profile", id: `Session-${id}` }],
+      transformResponse: (
+        response: BaseResponse<ChargingSessionDetailResponse>
+      ) => response.data,
+      providesTags: (result, error, id) => [
+        { type: "Profile", id: `Session-${id}` },
+      ],
     }),
 
-    getMyReviews: builder.query<ReviewListResponse, { page?: number; size?: number }>({
-      query: ({ page = 0, size = 10 }) => `/api/customer/reviews?page=${page}&size=${size}`,
+    getMyReviews: builder.query<
+      ReviewListResponse,
+      { page?: number; size?: number }
+    >({
+      query: ({ page = 0, size = 10 }) =>
+        `/api/ratings/my-reviews?page=${page}&size=${size}`,
       providesTags: ["Profile"],
     }),
-        // --- Reviews ---
-    createReview: builder.mutation<any, { targetType: string; targetId?: number; sessionId?: number; stars: number; comment: string }>({
-        query: (body) => ({
-            url: `/api/ratings`,
-            method: "POST",
-            body,
-        }),
-        invalidatesTags: ["Profile"],
+    // --- Reviews ---
+    createReview: builder.mutation<
+      ReviewResponse,
+      {
+        targetType: string;
+        targetId?: number;
+        sessionId?: number;
+        stars: number;
+        comment: string;
+      }
+    >({
+      query: (body) => ({
+        url: `/api/ratings`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Profile"],
     }),
   }),
 });

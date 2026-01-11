@@ -82,11 +82,6 @@ public class ChargingSessionServiceImpl implements ChargingSessionService {
         Vendor vendor = station != null ? station.getVendor() : null;
         Transaction transaction = session.getTransaction();
 
-        ChargingSessionDetailResponse.builder()
-                // Session info
-                .sessionId(session.getId())
-                .startTime(session.getStartTime())
-                .endTime(session.getEndTime());
         // Calculate provisional values for CHARGING sessions if DB values are empty
         java.math.BigDecimal energyKwh = session.getEnergyKwh();
         java.math.BigDecimal cost = session.getCost();
