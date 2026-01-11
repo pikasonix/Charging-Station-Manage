@@ -2,30 +2,26 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { RootState } from '../store';
 
 export interface Session {
-    id: number;
+    sessionId: number;
     startTime: string; // ISO string
     endTime: string | null;
     status: 'CHARGING' | 'COMPLETED' | 'PENDING';
     energyKwh: number;
     cost: number;
-    connectorId?: number;
+
+    // Flattened info from Backend DTO
+    stationId?: number;
+    stationName?: string;
+    stationAddress?: string;
+
     vehicleId?: number;
-    electricVehicle?: {
-        id: number;
-        brand: string;
-        model: string;
-        licensePlate: string;
-    };
-    chargingConnector?: {
-        id: number;
-        pole?: {
-            id: number;
-            station?: {
-                id: number;
-                name: string;
-            };
-        };
-    };
+    licensePlate?: string;
+    vehicleBrand?: string;
+    vehicleModel?: string;
+
+    connectorId?: number;
+    connectorType?: string;
+    maxPower?: number;
 }
 
 export const sessionApi = createApi({

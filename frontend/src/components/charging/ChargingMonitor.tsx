@@ -1,40 +1,21 @@
 'use client';
 import React, { useEffect, useState } from "react";
 import { Zap, Clock, Battery, AlertTriangle } from "lucide-react";
-import { useGetCurrentSessionQuery, useStopSessionMutation, useGetSessionHistoryQuery ,useGetActiveSessionsQuery} from "@/lib/redux/services/sessionApi";
+import { useGetCurrentSessionQuery, useStopSessionMutation, useGetSessionHistoryQuery, useGetActiveSessionsQuery } from "@/lib/redux/services/sessionApi";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import ReviewDialog from "@/components/profile/MyReviewsSection/ReviewDialog";
 
+// ... (imports remain matching)
+
 export default function ChargingMonitor() {
     const { data: session, refetch, isLoading, isError } = useGetCurrentSessionQuery(undefined, {
-        pollingInterval: 5000, 
+        pollingInterval: 5000,
     });
-    
-    // Debug for history
-    const { data: historyData } = useGetSessionHistoryQuery({ page: 0, size: 5 });
-    console.log("ChargingMonitor History Debug:", historyData);
-    if (historyData?.content?.length > 0) {
-        console.log("Latest History Item Status:", historyData.content[0].status);
-        console.log("Latest History Item Full:", historyData.content[0]);
-    }
 
     // Debug for current session
     console.log("ChargingMonitor Current Session Debug:", { session, isLoading, isError });
-    
-    // Debug session structure when charging
-    if (session && session.status === 'CHARGING') {
-        console.log("[ChargingMonitor] Active charging session detected:");
-        console.log("  - Session ID:", session.id);
-        console.log("  - Has chargingConnector:", !!session.chargingConnector);
-        console.log("  - Has pole:", !!session.chargingConnector?.pole);
-        console.log("  - Has station:", !!session.chargingConnector?.pole?.station);
-        if (session.chargingConnector?.pole?.station) {
-            console.log("  - Station ID:", session.chargingConnector.pole.station.id);
-            console.log("  - Station Name:", session.chargingConnector.pole.station.name);
-        }
-    }
 
     const [stopSession, { isLoading: isStopping }] = useStopSessionMutation();
     const [elapsedTime, setElapsedTime] = useState(0);
@@ -48,7 +29,7 @@ export default function ChargingMonitor() {
             // Initial set
             const now = new Date().getTime();
             setElapsedTime(Math.floor((now - start) / 1000));
-            
+
             interval = setInterval(() => {
                 const currentNow = new Date().getTime();
                 setElapsedTime(Math.floor((currentNow - start) / 1000));
@@ -68,25 +49,15 @@ export default function ChargingMonitor() {
     const [showReviewDialog, setShowReviewDialog] = useState(false);
     const [completedSession, setCompletedSession] = useState<any | null>(null);
 
-    // Debug review dialog state
-    useEffect(() => {
-        console.log("[ChargingMonitor] Review Dialog State:", {
-            showReviewDialog,
-            hasCompletedSession: !!completedSession,
-            completedSessionId: completedSession?.id
-        });
-    }, [showReviewDialog, completedSession]);
-
     const handleStop = async () => {
-        console.log("[ChargingMonitor] handleStop called. Session:", session);
         if (!session) return;
-        
-        const idToStop = session.id;
+
+        const idToStop = session.sessionId;
         console.log("[ChargingMonitor] Stopping session ID:", idToStop);
 
         if (!idToStop) {
-             toast.error("Lỗi: Không tìm thấy ID phiên sạc.");
-             return;
+            toast.error("Lỗi: Không tìm thấy ID phiên sạc.");
+            return;
         }
 
         try {
@@ -105,7 +76,7 @@ export default function ChargingMonitor() {
 
     if (isLoading) return null; // Or a small spinner if preferred
     if (isError) return null; // Or show error toast
-    
+
     // Logic to keep component mounted if we need to show review dialog
     const shouldRender = (isCharging && session) || (showReviewDialog && completedSession);
     if (!shouldRender) return null;
@@ -133,7 +104,7 @@ export default function ChargingMonitor() {
                     </div>
                 </div>
                 <div className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                    #ID: {displaySession.id}
+                    #ID: {displaySession.sessionId}
                 </div>
             </div>
 
@@ -162,9 +133,9 @@ export default function ChargingMonitor() {
                     <span className="font-bold text-gray-900">{displaySession.cost?.toLocaleString()} VNĐ</span>
                 </div>
                 {!showReviewDialog && (
-                    <Button 
-                        variant="destructive" 
-                        className="w-full bg-rose-600 hover:bg-rose-700" 
+                    <Button
+                        variant="destructive"
+                        className="w-full bg-rose-600 hover:bg-rose-700"
                         onClick={handleStop}
                         disabled={isStopping}
                     >
@@ -173,15 +144,15 @@ export default function ChargingMonitor() {
                 )}
             </div>
 
-            <ReviewDialog 
+            <ReviewDialog
                 isOpen={showReviewDialog}
                 onClose={() => {
                     setShowReviewDialog(false);
-                    setCompletedSession(null); 
+                    setCompletedSession(null);
                 }}
-                sessionId={displaySession.id}
-                stationId={displaySession.chargingConnector?.pole?.station?.id}
-                stationName={displaySession.chargingConnector?.pole?.station?.name}
+                sessionId={displaySession.sessionId}
+                stationId={displaySession.stationId}
+                stationName={displaySession.stationName}
             />
         </div>
     );
