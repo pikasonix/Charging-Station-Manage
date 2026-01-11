@@ -8,11 +8,24 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import jakarta.annotation.PostConstruct;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import java.util.TimeZone;
+
 @SpringBootApplication
 public class ChargingStationManagementApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(ChargingStationManagementApplication.class, args);
+    }
+
+    @PostConstruct
+    public void init() {
+        // Thiết lập Timezone mặc định cho toàn bộ ứng dụng
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
+        System.out.println("Spring Boot application running in UTC timezone: " + new Date());
+        // Hoặc in ra để kiểm tra: "Asia/Ho_Chi_Minh"
     }
 
     // --- Thêm đoạn code này để tự tạo Admin ---
