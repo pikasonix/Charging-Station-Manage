@@ -176,10 +176,10 @@ export default function TransactionManagement() {
               onChange={(e) => handleFilterChange('paymentMethod', e.target.value || undefined)}
             >
               <option value="">Tất cả</option>
-              <option value="BANK_TRANSFER">Chuyển khoản</option>
-              <option value="CREDIT_CARD">Thẻ tín dụng</option>
-              <option value="E_WALLET">Ví điện tử</option>
               <option value="CASH">Tiền mặt</option>
+              <option value="CREDITCARD">Thẻ tín dụng</option>
+              <option value="EWALLET">Ví điện tử</option>
+              <option value="BANKTRASFER">Chuyển khoản</option>
             </select>
           </div>
 
