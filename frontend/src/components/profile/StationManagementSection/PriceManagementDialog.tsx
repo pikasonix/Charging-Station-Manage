@@ -233,10 +233,10 @@ export function PriceManagementDialog({
 
               <div className="col-span-12 sm:col-span-4 space-y-1.5">
                 <Label className="text-xs font-medium text-gray-600">
-                  Giá (VND/kWh hoặc /phút) <span className="text-red-500">*</span>
+                  Giá (VND/kWh) <span className="text-red-500">*</span>
                 </Label>
                 <div className="relative">
-                  {/* 👇 ĐÃ THÊM: h-10 để đồng bộ chiều cao */}
+                  {/* ĐÃ THÊM: h-10 để đồng bộ chiều cao */}
                   <Input
                     type="number"
                     value={formData.price}

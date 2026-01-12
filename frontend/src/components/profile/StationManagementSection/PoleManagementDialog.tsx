@@ -155,7 +155,7 @@ export function PoleManagementDialog({
 
           {/* Số lượng súng sạc (Max Connectors) */}
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label className="text-right">Số súng</Label>
+            <Label className="text-right">Số cổng sạc</Label>
             <Input
               type="number"
               className="col-span-3"
