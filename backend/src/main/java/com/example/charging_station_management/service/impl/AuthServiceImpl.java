@@ -168,9 +168,14 @@ public class AuthServiceImpl implements AuthService {
     passwordResetTokenRepository.save(resetToken);
 
     // Send email
-    emailService.sendPasswordResetEmail(user.getEmail(), token);
-
-    log.info("Password reset token created and email sent for user: {}", user.getEmail());
+    try {
+      log.info("Attempting to send password reset email to: {}", user.getEmail());
+      emailService.sendPasswordResetEmail(user.getEmail(), token);
+      log.info("Password reset token created and email sent successfully for user: {}", user.getEmail());
+    } catch (Exception e) {
+      log.error("Failed to send password reset email to: {}. Error: {}", user.getEmail(), e.getMessage(), e);
+      throw new RuntimeException("Không thể gửi email đặt lại mật khẩu: " + e.getMessage());
+    }
   }
 
   @Override
