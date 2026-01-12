@@ -13,7 +13,7 @@ import com.example.charging_station_management.entity.converters.RescueStation;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-public interface AdminService {
+public interface AdminService { 
 
     // --- USER MANAGEMENT ---
     Page<UserDto> getUsers(UserFilterRequest request);
