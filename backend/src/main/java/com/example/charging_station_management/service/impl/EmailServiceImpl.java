@@ -54,7 +54,14 @@ public class EmailServiceImpl implements EmailService {
             mailSender.send(message);
             log.info("Password reset email sent successfully to: {}", toEmail);
 
-        } catch (Exception e) {
+        } catch (org.springframework.mail.MailAuthenticationException e) {
+            log.error("FAILED to send password reset email to: {} due to authentication error.", toEmail, e);
+            throw new RuntimeException("Lỗi xác thực email. Vui lòng kiểm tra cấu hình email trên server.");
+        } catch(org.springframework.mail.MailSendException e) {
+            log.error("FAILED to send password reset email to: {} due to mail send error.", toEmail, e);
+            throw new RuntimeException("Lỗi khi gửi email. Vui lòng kiểm tra kết nối mạng và cấu hình email trên server.");
+        }
+        catch (Exception e) {
             log.error("FAILED to send password reset email to: {}", toEmail, e);
             log.error("Error type: {}", e.getClass().getName());
             log.error("Error message: {}", e.getMessage());
