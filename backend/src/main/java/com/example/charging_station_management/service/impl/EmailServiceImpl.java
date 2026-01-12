@@ -18,7 +18,7 @@ public class EmailServiceImpl implements EmailService {
     @Value("${spring.mail.username:}")
     private String fromEmail;
 
-    @Value("${app.frontend.url:http://localhost:3000}")
+    @Value("${app.frontend.url:https://charging-station-manage.vercel.app}")
     private String frontendUrl;
 
     @Override
