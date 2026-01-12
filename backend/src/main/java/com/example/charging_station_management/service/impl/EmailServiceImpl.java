@@ -23,12 +23,18 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendPasswordResetEmail(String toEmail, String resetToken) {
+        log.info("=== START sendPasswordResetEmail ===");
+        log.info("fromEmail: {}", fromEmail);
+        log.info("toEmail: {}", toEmail);
+        log.info("frontendUrl: {}", frontendUrl);
+        
         if (fromEmail == null || fromEmail.isBlank()) {
             log.warn("Email is not configured (spring.mail.username is blank). Skipping send.");
             throw new RuntimeException("Chức năng gửi email chưa được cấu hình trên server.");
         }
         try {
             String resetUrl = frontendUrl + "/reset-password?token=" + resetToken;
+            log.info("Reset URL: {}", resetUrl);
 
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
@@ -44,11 +50,14 @@ public class EmailServiceImpl implements EmailService {
                             "Charging Station Management Team"
             );
 
+            log.info("Sending email...");
             mailSender.send(message);
-            log.info("Password reset email sent to: {}", toEmail);
+            log.info("Password reset email sent successfully to: {}", toEmail);
 
         } catch (Exception e) {
-            log.error("Failed to send password reset email to: {}", toEmail, e);
+            log.error("FAILED to send password reset email to: {}", toEmail, e);
+            log.error("Error type: {}", e.getClass().getName());
+            log.error("Error message: {}", e.getMessage());
             throw new RuntimeException("Không thể gửi email. Vui lòng thử lại sau.");
         }
     }
