@@ -25,7 +25,9 @@ import { cn } from "@/lib/utils";
 const parseDateTime = (dateString: string) => {
   if (!dateString) return new Date();
   // Remove 'Z' if present to force local time interpretation
-  const localDateString = dateString.endsWith('Z') ? dateString.slice(0, -1) : dateString;
+  const localDateString = dateString.endsWith("Z")
+    ? dateString.slice(0, -1)
+    : dateString;
   return new Date(localDateString);
 };
 
@@ -40,8 +42,8 @@ export default function VendorSessionHistory() {
     to: date ? format(endOfDay(date), "yyyy-MM-dd'T'HH:mm:ss") : undefined,
   });
 
-  const sessions = data?.data?.content || [];
-  const totalPages = data?.data?.totalPages || 0;
+  const sessions = data?.content || [];
+  const totalPages = data?.totalPages || 0;
 
   return (
     <div className="space-y-4">
@@ -58,7 +60,11 @@ export default function VendorSessionHistory() {
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Lọc theo ngày bắt đầu</span>}
+                {date ? (
+                  format(date, "PPP")
+                ) : (
+                  <span>Lọc theo ngày bắt đầu</span>
+                )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
@@ -70,7 +76,11 @@ export default function VendorSessionHistory() {
               />
             </PopoverContent>
           </Popover>
-          {date && <Button variant="ghost" onClick={() => setDate(undefined)}>Xóa</Button>}
+          {date && (
+            <Button variant="ghost" onClick={() => setDate(undefined)}>
+              Xóa
+            </Button>
+          )}
         </div>
       </div>
 
@@ -90,11 +100,16 @@ export default function VendorSessionHistory() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center h-24">Đang tải...</TableCell>
+                  <TableCell colSpan={6} className="text-center h-24">
+                    Đang tải...
+                  </TableCell>
                 </TableRow>
               ) : sessions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center h-24 text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="text-center h-24 text-muted-foreground"
+                  >
                     Không tìm thấy lịch sử.
                   </TableCell>
                 </TableRow>
@@ -114,21 +129,34 @@ export default function VendorSessionHistory() {
                     <TableCell>
                       <div className="flex flex-col">
                         <span>{session.stationName}</span>
-                        <span className="text-xs text-muted-foreground">{session.connectorType}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {session.connectorType}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
                         <span>{session.customerName}</span>
-                        <span className="text-xs text-muted-foreground">{session.licensePlate}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {session.licensePlate}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>{session.energyKwh} kWh</TableCell>
                     <TableCell>
-                      {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(session.cost)}
+                      {new Intl.NumberFormat("vi-VN", {
+                        style: "currency",
+                        currency: "VND",
+                      }).format(session.cost)}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={session.status === "COMPLETED" ? "default" : "destructive"}>
+                      <Badge
+                        variant={
+                          session.status === "COMPLETED"
+                            ? "default"
+                            : "destructive"
+                        }
+                      >
                         {session.status}
                       </Badge>
                     </TableCell>
@@ -156,7 +184,9 @@ export default function VendorSessionHistory() {
           variant="outline"
           size="sm"
           onClick={() => setPage((p) => p + 1)}
-          disabled={!data || data.data?.last || isLoading}
+          disabled={
+            !data || data.number >= (data.totalPages || 1) - 1 || isLoading
+          }
         >
           <ChevronRight className="h-4 w-4" />
         </Button>

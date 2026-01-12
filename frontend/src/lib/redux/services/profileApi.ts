@@ -416,9 +416,8 @@ export const profileApi = createApi({
         if (to) qs += `&startTimeTo=${to}`;
         return `/api/vendor/sessions/history?${qs}`;
       },
-      // API returns BaseApiResponse<Page<ChargingSessionDetailResponse>> which transforms to { data: { content: [...] } }
-      // We want to return the Page object directly or handle it in component
-      // transformResponse: (response: BaseResponse<any>) => response.data,
+      transformResponse: (response: BaseResponse<ChargingHistoryResponse>) =>
+        response.data,
       providesTags: ["Profile"],
     }),
 
